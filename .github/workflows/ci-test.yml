@@ -44,9 +44,9 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         path: ./publish-api
         registry: docker.pkg.github.com
-        repository: ${{ secrets.ORG_NAME }}/service.fireblocks.webhook/myjetwallet.service.fireblocsk.webhook-test
+        repository: ${{ secrets.ORG_NAME }}/service.fireblocks.webhook/myjetwallet.service.fireblocks.webhook-test
         tags: latest
-        build_args: app_version=myjetwallet.service.circle.webhooks-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
+        build_args: app_version=myjetwallet.service.fireblocks.webhooks-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
     - name: Publish image ST
       uses: docker/build-push-action@v1
