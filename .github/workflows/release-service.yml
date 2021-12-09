@@ -74,7 +74,7 @@ jobs:
         ref: uat        
         token: ${{ secrets.UAT_GIT_TOKEN }}
     - run: |
-        pattern=myjetwallet.service.fireblocsk.webhook:.*$
+        pattern=myjetwallet.service.fireblocks.webhook:.*$
         imagename=myjetwallet.service.fireblocks.webhook:${GITHUB_REF#refs/tags/}
         reg=$"s/${pattern}/${imagename}/g"
         echo $reg
