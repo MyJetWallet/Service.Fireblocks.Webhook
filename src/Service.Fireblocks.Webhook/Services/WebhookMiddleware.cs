@@ -4,13 +4,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Fireblocks.Client;
 using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
+using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
 using Service.Bitgo.DepositDetector.Domain.Models;
 using Service.Bitgo.DepositDetector.Grpc;
-using Service.Circle.Signer.Grpc;
-using Service.Circle.Signer.Grpc.Models;
+using Service.Blockchain.Wallets.Grpc;
+using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
+using Service.Fireblocks.Webhook.Domain.Models;
+using Service.Fireblocks.Webhook.Domain.Models.Deposits;
+using Service.Fireblocks.Webhook.Events;
+using Service.Fireblocks.Webhook.ServiceBus;
+using Service.Fireblocks.Webhook.ServiceBus.Deposits;
 
 // ReSharper disable InconsistentLogPropertyNaming
 // ReSharper disable TemplateIsNotCompileTimeConstantProblem
@@ -22,16 +29,20 @@ namespace Service.Fireblocks.Webhook.Services
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<WebhookMiddleware> _logger;
+        private readonly IServiceBusPublisher<WebhookQueueItem> _serviceBusPublisher;
+        private readonly IWalletService _walletService;
 
         /// <summary>
         /// Middleware that handles all unhandled exceptions and logs them as errors.
         /// </summary>
         public WebhookMiddleware(
             RequestDelegate next,
-            ILogger<WebhookMiddleware> logger)
+            ILogger<WebhookMiddleware> logger,
+            IServiceBusPublisher<WebhookQueueItem> serviceBusPublisher)
         {
             _next = next;
             _logger = logger;
+            this._serviceBusPublisher = serviceBusPublisher;
         }
 
         /// <summary>
@@ -81,7 +92,52 @@ namespace Service.Fireblocks.Webhook.Services
 
                 activity.AddTag("Body", body);
 
-                _logger.LogInformation("Message from Fireblocks: {message}", body);
+                _logger.LogInformation("Message from Fireblocks: @{context}", body);
+
+                var webhook = Newtonsoft.Json.JsonConvert.DeserializeObject<WebhookBase>(body);
+
+                if (webhook == null)
+                {
+                    context.Response.StatusCode = 400;
+                    _logger.LogWarning("Message from Fireblocks: @{context} can't be parsed", body);
+
+                    return;
+                }
+
+                switch (webhook.Type)
+                {
+                    case WebhookType.TRANSACTION_CREATED:
+                    case WebhookType.TRANSACTION_APPROVAL_STATUS_UPDATED:
+                    case WebhookType.TRANSACTION_STATUS_UPDATED:
+                        {
+                            await _serviceBusPublisher.PublishAsync(new WebhookQueueItem
+                            {
+                                Data = body,
+                                Type = webhook.Type,
+                            });
+                            break;
+                        }
+
+                    case WebhookType.VAULT_ACCOUNT_ADDED:
+                    case WebhookType.NETWORK_CONNECTION_ADDED:
+                    case WebhookType.EXCHANGE_ACCOUNT_ADDED:
+                    case WebhookType.FIAT_ACCOUNT_ADDED:
+                    case WebhookType.VAULT_ACCOUNT_ASSET_ADDED:
+                    case WebhookType.INTERNAL_WALLET_ASSET_ADDED:
+                    case WebhookType.EXTERNAL_WALLET_ASSET_ADDED:
+                        {
+                            //SKIP... FOR NOW!
+                            break;
+                        }
+
+                    default:
+                        {
+                            context.Response.StatusCode = 400;
+                            _logger.LogWarning("Message from Fireblocks: @{context} webhook can't be reckognised", body);
+
+                            return;
+                        }
+                }
             }
 
             context.Response.StatusCode = 200;

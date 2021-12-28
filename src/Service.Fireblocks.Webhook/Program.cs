@@ -10,7 +10,7 @@ using MyJetWallet.Sdk.Service;
 using MySettingsReader;
 using Service.Fireblocks.Webhook.Settings;
 
-namespace Service.Circle.Webhooks
+namespace Service.Fireblocks.Webhook
 {
     public class Program
     {

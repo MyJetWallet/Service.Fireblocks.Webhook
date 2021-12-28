@@ -29,12 +29,12 @@ jobs:
       run: dotnet pack --configuration Release src/Service.Circle.Webhooks.Client /p:Version=${GITHUB_REF#refs/tags/client-}
 
     - name: Publish the package to GPR
-      run: dotnet nuget push src/Service.Circle.Webhooks.Client/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}
+      run: dotnet nuget push src/Service.Fireblocks.Webhook.Client/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}
 
     - name: Publish the package to GitHub
       uses: MyJetWallet/nuget-publish-to-github-packages-action@v2.1
       with:
-        nupkg-path:  './src/Service.Circle.Webhooks.Client/bin/Release/*.nupkg'
+        nupkg-path:  './src/Service.Fireblocks.Webhook.Client/bin/Release/*.nupkg'
         repo-owner:  'myjetwallet'
         gh-user:  ${{ github.actor }}
         token:  ${{ secrets.GITHUB_TOKEN }}  

@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Service.Circle.Webhooks;
 
 namespace Service.Fireblocks.Webhook.Modules
 {

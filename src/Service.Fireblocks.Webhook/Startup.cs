@@ -8,12 +8,11 @@ using Microsoft.Extensions.Hosting;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
-using Service.Fireblocks.Webhook;
 using Service.Fireblocks.Webhook.Modules;
 using Service.Fireblocks.Webhook.Services;
 using SimpleTrading.ServiceStatusReporterConnector;
 
-namespace Service.Circle.Webhooks
+namespace Service.Fireblocks.Webhook
 {
     public class Startup
     {

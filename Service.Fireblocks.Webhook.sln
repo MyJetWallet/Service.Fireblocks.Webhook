@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\ci-test.yml = .github\workflows\ci-test.yml
 		README.md = README.md
+		.github\workflows\release-api-client.yml = .github\workflows\release-api-client.yml
 		.github\workflows\release-service.yml = .github\workflows\release-service.yml
 		.github\workflows\update_nuget.yaml = .github\workflows\update_nuget.yaml
 	EndProjectSection
@@ -24,6 +25,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.Webhook.Domain.Models", "src\Service.Fireblocks.Webhook.Domain.Models\Service.Fireblocks.Webhook.Domain.Models.csproj", "{24C72434-790F-409C-9B88-DFD4E52262C5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.Webhook", "src\Service.Fireblocks.Webhook\Service.Fireblocks.Webhook.csproj", "{DC1C6828-2BCC-48EB-9DBE-E188CD6F7151}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.Webhook.ServiceBus", "src\Service.Fireblocks.Webhook.ServiceBus\Service.Fireblocks.Webhook.ServiceBus.csproj", "{6746E928-348C-4918-99D1-CFAC986EBE81}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.Webhook.Client", "src\Service.Fireblocks.Webhook.Client\Service.Fireblocks.Webhook.Client.csproj", "{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +52,14 @@ Global
 		{DC1C6828-2BCC-48EB-9DBE-E188CD6F7151}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC1C6828-2BCC-48EB-9DBE-E188CD6F7151}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC1C6828-2BCC-48EB-9DBE-E188CD6F7151}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6746E928-348C-4918-99D1-CFAC986EBE81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6746E928-348C-4918-99D1-CFAC986EBE81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6746E928-348C-4918-99D1-CFAC986EBE81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6746E928-348C-4918-99D1-CFAC986EBE81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +68,8 @@ Global
 		{58D3C5BA-5D1D-48BA-9D51-482831254985} = {D11EB899-A148-4C9B-B340-B907EF71C4A2}
 		{D80A66A9-D32C-4572-9ECB-D9549BE04DBF} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 		{24C72434-790F-409C-9B88-DFD4E52262C5} = {446301A0-97F2-4921-BA0B-32B76039C73B}
+		{6746E928-348C-4918-99D1-CFAC986EBE81} = {446301A0-97F2-4921-BA0B-32B76039C73B}
+		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE} = {EB832FF1-4E01-40ED-BAC4-5ECF70F5C108}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BF00C9D-AD55-40F2-8FE3-E5C3559B3E26}

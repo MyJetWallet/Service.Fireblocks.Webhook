@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference PrivateAssets="All" Include="..\Service.Circle.Webhooks.Domain.Models\Service.Circle.Webhooks.Domain.Models.csproj" />
-    <ProjectReference PrivateAssets="All" Include="..\Service.Circle.Webhooks.Grpc\Service.Circle.Webhooks.Grpc.csproj" />
+    <ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.Domain.Models\Service.Fireblocks.Webhook.Domain.Models.csproj" />
+	<ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.Domain\Service.Fireblocks.Webhook.Domain.csproj" />
+	<ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.ServiceBus\Service.Fireblocks.Webhook.ServiceBus.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,12 +28,12 @@
     <TargetsForTfmSpecificBuildOutput>
       $(TargetsForTfmSpecificBuildOutput);PackReferencedProjectOutputs
     </TargetsForTfmSpecificBuildOutput>
-    <PackageId>MyJetWallet.Service.Circle.Webhooks.Client</PackageId>
+    <PackageId>MyJetWallet.Service.Fireblocks.Webhook.Client</PackageId>
     <Authors>MyJetWallet</Authors>
     <Company>MyJetWallet</Company>
     <Product>MyJetWallet</Product>
-    <PackageProjectUrl>https://github.com/MyJetWallet/Service.Circle.Webhooks</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/MyJetWallet/Service.Circle.Webhooks</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/MyJetWallet/Service.Fireblocks.Webhook</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MyJetWallet/Service.Fireblocks.Webhook</RepositoryUrl>
   </PropertyGroup>
 
   <Target Name="PackReferencedProjectOutputs" DependsOnTargets="BuildOnlySettings;ResolveReferences">
