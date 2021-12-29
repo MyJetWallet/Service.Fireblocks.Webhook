@@ -77,7 +77,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                             new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest.AddressAndTag
                                             {
                                                 Address = transaction.DestinationAddress.ToLowerInvariant(),
-                                                Tag = transaction.Tag ?? string.Empty,
+                                                Tag = transaction.DestinationTag ?? string.Empty,
                                             }
                                         },
                                     });
