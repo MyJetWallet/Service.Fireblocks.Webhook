@@ -43,7 +43,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             using var activity = MyTelemetry.StartActivity("Handle Fireblocks Event WebhookQueueItem");
             var body = webhook.Data;
 
-            _logger.LogInformation("Processing webhook queue item: @{context}", webhook);
+            _logger.LogInformation("Processing webhook queue item: {@context}", webhook);
 
             try
             {
@@ -59,7 +59,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             if (mapping == null)
                             {
-                                _logger.LogWarning("Message from Fireblocks: @{context} ASSET IS NOT CONFIGURED!", body);
+                                _logger.LogWarning("Message from Fireblocks: {@context} ASSET IS NOT CONFIGURED!", body);
                                 break;
                             }
 
@@ -130,7 +130,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                     default:
                         {
-                            _logger.LogWarning("Message from Fireblocks Queue: @{context} webhook can't be reckognised", body);
+                            _logger.LogWarning("Message from Fireblocks Queue: {@context} webhook can't be reckognised", body);
 
                             return;
                         }
@@ -138,7 +138,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing webhook queue @{context}", webhook);
+                _logger.LogError(ex, "Error processing webhook queue {@context}", webhook);
                 ex.FailActivity();
                 throw;
             }
