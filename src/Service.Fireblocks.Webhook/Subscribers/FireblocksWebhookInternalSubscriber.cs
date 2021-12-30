@@ -146,7 +146,10 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                 }
                                    
                             } else if (transaction.Status == TransactionResponseStatus.CANCELLED ||
-                                       transaction.Status == TransactionResponseStatus.FAILED) {
+                                       transaction.Status == TransactionResponseStatus.FAILED ||
+                                       transaction.Status == TransactionResponseStatus.BLOCKED ||
+                                       transaction.Status == TransactionResponseStatus.REJECTED ||
+                                       transaction.Status == TransactionResponseStatus.TIMEOUT) {
                                 if (!string.IsNullOrEmpty(transaction.ExternalTxId))
                                 {
                                     var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
