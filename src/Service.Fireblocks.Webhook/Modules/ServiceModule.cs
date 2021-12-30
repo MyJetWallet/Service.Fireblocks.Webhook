@@ -1,12 +1,9 @@
 ﻿using Autofac;
 using MyJetWallet.Sdk.NoSql;
-using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
 using Service.AssetsDictionary.Client;
-using Service.Bitgo.DepositDetector.Client;
 using Service.Blockchain.Wallets.Client;
 using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
-using Service.Blockchain.Wallets.ServiceBus;
 using Service.Fireblocks.Webhook.ServiceBus;
 using Service.Fireblocks.Webhook.ServiceBus.Deposits;
 using Service.Fireblocks.Webhook.Subscribers;
@@ -30,6 +27,8 @@ namespace Service.Fireblocks.Webhook.Modules
                 Program.LogFactory);
 
             builder.RegisterMyServiceBusPublisher<FireblocksDepositSignal>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksDepositSignalTopic, false);
+
+            builder.RegisterMyServiceBusPublisher<FireblocksWithdrawalSignal>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWithdrawalSignalTopic, false);
 
             builder.RegisterMyServiceBusPublisher<WebhookQueueItem>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookInternalTopic, false);
 

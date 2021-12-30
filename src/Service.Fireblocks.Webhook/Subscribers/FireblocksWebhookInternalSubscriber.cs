@@ -22,20 +22,23 @@ namespace Service.Fireblocks.Webhook.Subscribers
         private readonly ILogger<FireblocksWebhookInternalSubscriber> _logger;
         private readonly IWalletService _walletService;
         private readonly IMyNoSqlServerDataReader<AssetMappingNoSql> _assetMappingNoSql;
-        private readonly IServiceBusPublisher<FireblocksDepositSignal> _serviceBusPublisher;
+        private readonly IServiceBusPublisher<FireblocksDepositSignal> _depositPublisher;
+        private readonly IServiceBusPublisher<FireblocksWithdrawalSignal> _withdrawalPublisher;
 
         public FireblocksWebhookInternalSubscriber(
             ISubscriber<WebhookQueueItem> subscriber,
             ILogger<FireblocksWebhookInternalSubscriber> logger,
             IWalletService walletService,
             IMyNoSqlServerDataReader<AssetMappingNoSql> assetMappingNoSql,
-            IServiceBusPublisher<FireblocksDepositSignal> serviceBusPublisher)
+            IServiceBusPublisher<FireblocksDepositSignal> serviceBusPublisher,
+            IServiceBusPublisher<FireblocksWithdrawalSignal> withdrawalPublisher)
         {
             subscriber.Subscribe(HandleSignal);
             this._logger = logger;
             this._walletService = walletService;
             this._assetMappingNoSql = assetMappingNoSql;
-            this._serviceBusPublisher = serviceBusPublisher;
+            this._depositPublisher = serviceBusPublisher;
+            this._withdrawalPublisher = withdrawalPublisher;
         }
 
         private async ValueTask HandleSignal(WebhookQueueItem webhook)
@@ -66,8 +69,27 @@ namespace Service.Fireblocks.Webhook.Subscribers
                             var assetSymbol = mapping.AssetMapping.AssetId;
                             var network = mapping.AssetMapping.NetworkId;
                             
+
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
+                                if (!string.IsNullOrEmpty(transaction.ExternalTxId))
+                                {
+                                    var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
+                                    await _withdrawalPublisher.PublishAsync(new FireblocksWithdrawalSignal()
+                                    {
+                                        Amount = transaction.Amount,
+                                        AssetSymbol = assetSymbol,
+                                        Network = network,
+                                        Comment = "",
+                                        EventDate = createdAt.DateTime,
+                                        FeeAmount = transaction.NetworkFee,
+                                        FeeAssetSymbol = transaction.FeeCurrency,
+                                        Status = Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Completed,
+                                        TransactionId = transaction.TxHash,
+                                        ExternalId = transaction.ExternalTxId,
+                                    });
+                                }
+
                                 if (transaction.Destination.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
                                     var users = await _walletService.GetUserByAddressAsync(new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest
@@ -97,7 +119,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     var firstUser = users.Users.First();
 
                                     var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
-                                    await _serviceBusPublisher.PublishAsync(new FireblocksDepositSignal
+                                    await _depositPublisher.PublishAsync(new FireblocksDepositSignal
                                     {
                                         Amount = transaction.Amount,
                                         AssetSymbol = assetSymbol,
@@ -123,6 +145,25 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     //TODO:
                                 }
                                    
+                            } else if (transaction.Status == TransactionResponseStatus.CANCELLED ||
+                                       transaction.Status == TransactionResponseStatus.FAILED) {
+                                if (!string.IsNullOrEmpty(transaction.ExternalTxId))
+                                {
+                                    var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
+                                    await _withdrawalPublisher.PublishAsync(new FireblocksWithdrawalSignal()
+                                    {
+                                        Amount = transaction.Amount,
+                                        AssetSymbol = assetSymbol,
+                                        Network = network,
+                                        Comment = "",
+                                        EventDate = createdAt.DateTime,
+                                        FeeAmount = transaction.NetworkFee,
+                                        FeeAssetSymbol = transaction.FeeCurrency,
+                                        Status = Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Failed,
+                                        TransactionId = transaction.TxHash,
+                                        ExternalId = transaction.ExternalTxId,
+                                    });
+                                }
                             }
 
                             break;
