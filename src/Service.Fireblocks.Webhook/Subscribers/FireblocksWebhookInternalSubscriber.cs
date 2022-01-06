@@ -36,9 +36,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             IMyNoSqlServerDataReader<AssetMappingNoSql> assetMappingNoSql,
             IServiceBusPublisher<FireblocksDepositSignal> serviceBusPublisher,
             IServiceBusPublisher<FireblocksWithdrawalSignal> withdrawalPublisher,
-            IServiceBusPublisher<VaultAccountBalanceCacheUpdate> vaultAccountBalanceCacheUpdatePublisher,
-            IMyNoSqlServerDataWriter<VaultAssetNoSql> vaultAssetNoSql,
-            IVaultClient vaultClient)
+            IServiceBusPublisher<VaultAccountBalanceCacheUpdate> vaultAccountBalanceCacheUpdatePublisher)
         {
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
