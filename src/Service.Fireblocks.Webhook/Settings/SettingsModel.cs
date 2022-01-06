@@ -25,5 +25,8 @@ namespace Service.Fireblocks.Webhook.Settings
 
         [YamlProperty("FireblocksWebhook.MyNoSqlWriterUrl")]
         public string MyNoSqlWriterUrl { get; internal set; }
+
+        [YamlProperty("FireblocksWebhook.FireblocksApiUrl")]
+        public string FireblocksApiUrl { get; internal set; }
     }
 }

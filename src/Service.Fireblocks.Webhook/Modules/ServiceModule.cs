@@ -18,6 +18,7 @@ namespace Service.Fireblocks.Webhook.Modules
         {
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
 
+            builder.RegisterFireblocksApiClient(Program.Settings.FireblocksApiUrl);
             builder.RegisterMyNoSqlReader<AssetMappingNoSql>(myNoSqlClient, AssetMappingNoSql.TableName);
             builder.RegisterMyNoSqlWriter<VaultAssetNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), VaultAssetNoSql.TableName);
             

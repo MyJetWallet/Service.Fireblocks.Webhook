@@ -4,6 +4,7 @@ using MyJetWallet.Fireblocks.Client;
 using MyJetWallet.Sdk.Service;
 using MyNoSqlServer.Abstractions;
 using Service.Blockchain.Wallets.MyNoSql.Addresses;
+using Service.Fireblocks.Api.Grpc;
 using Service.Fireblocks.Webhook.ServiceBus.Balances;
 using System;
 using System.Linq;
@@ -15,13 +16,13 @@ namespace Service.Fireblocks.Webhook.Subscribers
     {
         private readonly ILogger<FireblocksWebhookBalanceInternalSubscriber> _logger;
         private readonly IMyNoSqlServerDataWriter<VaultAssetNoSql> _vaultAssetNoSql;
-        private readonly IVaultClient _vaultClient;
+        private readonly IVaultAccountService _vaultClient;
 
         public FireblocksWebhookBalanceInternalSubscriber(
             ISubscriber<VaultAccountBalanceCacheUpdate> subscriber,
             ILogger<FireblocksWebhookBalanceInternalSubscriber> logger,
             IMyNoSqlServerDataWriter<VaultAssetNoSql> vaultAssetNoSql,
-            IVaultClient vaultClient)
+            IVaultAccountService vaultClient)
         {
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
@@ -41,29 +42,22 @@ namespace Service.Fireblocks.Webhook.Subscribers
                 {
                     foreach (var vaultAccountId in message.VaultAccountIds)
                     {
-                        var vaultAcc = await _vaultClient.AccountsGetAsync(vaultAccountId, default);
-
-                        if (vaultAcc?.Result?.Assets != null)
+                        var vaultAcc = await _vaultClient.GetVaultAccountAsync(new Api.Grpc.Models.VaultAccounts.GetVaultAccountRequest
                         {
-                            var asset = vaultAcc.Result.Assets.FirstOrDefault(x => x.Id == message.FireblocksAssetId);
+                            VaultAccountId = vaultAccountId
+                        });
+
+                        if (vaultAcc.Error != null)
+                        {
+                            var asset = vaultAcc.VaultAccount.FirstOrDefault()?.VaultAssets
+                                .FirstOrDefault(x => x.Id == message.FireblocksAssetId);
 
                             if (asset != null)
                             {
                                 await _vaultAssetNoSql.InsertOrReplaceAsync(VaultAssetNoSql.Create(vaultAccountId, 
                                     message.AssetSymbol,
                                     message.AssetNetwork,
-                                    new MyJetWallet.Fireblocks.Domain.Models.VaultAssets.VaultAsset
-                                    {
-                                        Available = decimal.Parse(asset.Available),
-                                        BlockHash = asset.BlockHash,
-                                        BlockHeight = asset.BlockHeight,
-                                        Frozen = decimal.Parse(asset.Frozen),
-                                        Id = asset.Id,
-                                        LockedAmount = decimal.Parse(asset.LockedAmount),
-                                        Pending = decimal.Parse(asset.Pending),
-                                        Staked = decimal.Parse(asset.Staked),
-                                        Total = decimal.Parse(asset.Total),
-                                    }));
+                                    asset));
                             } else
                             {
                                 _logger.LogError("There is no balance for fireblocks asset {@context}", message);
