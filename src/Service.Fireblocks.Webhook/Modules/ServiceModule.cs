@@ -3,8 +3,10 @@ using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using Service.AssetsDictionary.Client;
 using Service.Blockchain.Wallets.Client;
+using Service.Blockchain.Wallets.MyNoSql.Addresses;
 using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
 using Service.Fireblocks.Webhook.ServiceBus;
+using Service.Fireblocks.Webhook.ServiceBus.Balances;
 using Service.Fireblocks.Webhook.ServiceBus.Deposits;
 using Service.Fireblocks.Webhook.Subscribers;
 
@@ -17,7 +19,8 @@ namespace Service.Fireblocks.Webhook.Modules
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
 
             builder.RegisterMyNoSqlReader<AssetMappingNoSql>(myNoSqlClient, AssetMappingNoSql.TableName);
-
+            builder.RegisterMyNoSqlWriter<VaultAssetNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), VaultAssetNoSql.TableName);
+            
             builder.RegisterAssetsDictionaryClients(myNoSqlClient);
             builder.RegisterAssetPaymentSettingsClients(myNoSqlClient);
             builder.RegisterBlockchainWalletsClient(Program.Settings.BlockchainWalletsGrpcServiceUrl, myNoSqlClient);
@@ -32,12 +35,23 @@ namespace Service.Fireblocks.Webhook.Modules
 
             builder.RegisterMyServiceBusPublisher<WebhookQueueItem>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookInternalTopic, false);
 
+            builder.RegisterMyServiceBusPublisher<VaultAccountBalanceCacheUpdate>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookBalanceInternalTopic, false);
+
             builder.RegisterMyServiceBusSubscriberSingle<WebhookQueueItem>(serviceBusClient, 
                 Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookInternalTopic,
                 "service-fireblocks-webhook", MyServiceBus.Abstractions.TopicQueueType.Permanent);
 
+            builder.RegisterMyServiceBusSubscriberSingle<VaultAccountBalanceCacheUpdate>(serviceBusClient,
+                Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookBalanceInternalTopic,
+                "service-fireblocks-webhook", MyServiceBus.Abstractions.TopicQueueType.Permanent);
+
             builder
                .RegisterType<FireblocksWebhookInternalSubscriber>()
+               .AutoActivate()
+               .SingleInstance();
+
+            builder
+               .RegisterType<FireblocksWebhookBalanceInternalSubscriber>()
                .AutoActivate()
                .SingleInstance();
         }

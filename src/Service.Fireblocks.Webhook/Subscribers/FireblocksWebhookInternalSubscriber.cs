@@ -5,13 +5,16 @@ using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using Service.Blockchain.Wallets.Grpc;
+using Service.Blockchain.Wallets.MyNoSql.Addresses;
 using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
 using Service.Fireblocks.Webhook.Domain.Models;
 using Service.Fireblocks.Webhook.Domain.Models.Deposits;
 using Service.Fireblocks.Webhook.Events;
 using Service.Fireblocks.Webhook.ServiceBus;
+using Service.Fireblocks.Webhook.ServiceBus.Balances;
 using Service.Fireblocks.Webhook.ServiceBus.Deposits;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,6 +27,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
         private readonly IMyNoSqlServerDataReader<AssetMappingNoSql> _assetMappingNoSql;
         private readonly IServiceBusPublisher<FireblocksDepositSignal> _depositPublisher;
         private readonly IServiceBusPublisher<FireblocksWithdrawalSignal> _withdrawalPublisher;
+        private readonly IServiceBusPublisher<VaultAccountBalanceCacheUpdate> _vaultAccountBalanceCacheUpdatePublisher;
 
         public FireblocksWebhookInternalSubscriber(
             ISubscriber<WebhookQueueItem> subscriber,
@@ -31,14 +35,18 @@ namespace Service.Fireblocks.Webhook.Subscribers
             IWalletService walletService,
             IMyNoSqlServerDataReader<AssetMappingNoSql> assetMappingNoSql,
             IServiceBusPublisher<FireblocksDepositSignal> serviceBusPublisher,
-            IServiceBusPublisher<FireblocksWithdrawalSignal> withdrawalPublisher)
+            IServiceBusPublisher<FireblocksWithdrawalSignal> withdrawalPublisher,
+            IServiceBusPublisher<VaultAccountBalanceCacheUpdate> vaultAccountBalanceCacheUpdatePublisher,
+            IMyNoSqlServerDataWriter<VaultAssetNoSql> vaultAssetNoSql,
+            IVaultClient vaultClient)
         {
             subscriber.Subscribe(HandleSignal);
-            this._logger = logger;
-            this._walletService = walletService;
-            this._assetMappingNoSql = assetMappingNoSql;
-            this._depositPublisher = serviceBusPublisher;
-            this._withdrawalPublisher = withdrawalPublisher;
+            _logger = logger;
+            _walletService = walletService;
+            _assetMappingNoSql = assetMappingNoSql;
+            _depositPublisher = serviceBusPublisher;
+            _withdrawalPublisher = withdrawalPublisher;
+            _vaultAccountBalanceCacheUpdatePublisher = vaultAccountBalanceCacheUpdatePublisher;
         }
 
         private async ValueTask HandleSignal(WebhookQueueItem webhook)
@@ -68,7 +76,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             var assetSymbol = mapping.AssetMapping.AssetId;
                             var network = mapping.AssetMapping.NetworkId;
-                            
+                            var vaultAccountsList = new List<string>();
 
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
@@ -90,8 +98,14 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     });
                                 }
 
+                                if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
+                                {
+                                    vaultAccountsList.Add(transaction.Source.Id);
+                                }
+
                                 if (transaction.Destination.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
+                                    vaultAccountsList.Add(transaction.Destination.Id);
                                     var users = await _walletService.GetUserByAddressAsync(new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest
                                     {
                                         Addresses = new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest.AddressAndTag[]
@@ -144,7 +158,18 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     _logger.LogWarning("Many connections! {@context}", webhook);
                                     //TODO:
                                 }
-                                   
+
+                                if (vaultAccountsList.Any())
+                                {
+                                    await _vaultAccountBalanceCacheUpdatePublisher.PublishAsync(new VaultAccountBalanceCacheUpdate
+                                    {
+                                        VaultAccountIds = vaultAccountsList.ToArray(),
+                                        AssetSymbol = assetSymbol,
+                                        AssetNetwork = network,
+                                        FireblocksAssetId = mapping.AssetMapping.FireblocksAssetId,
+                                    });
+                                }
+
                             } else if (transaction.Status == TransactionResponseStatus.CANCELLED ||
                                        transaction.Status == TransactionResponseStatus.FAILED ||
                                        transaction.Status == TransactionResponseStatus.BLOCKED ||
@@ -158,7 +183,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                         Amount = transaction.Amount,
                                         AssetSymbol = assetSymbol,
                                         Network = network,
-                                        Comment = "",
+                                        Comment = $"{transaction.Status}",
                                         EventDate = createdAt.DateTime,
                                         FeeAmount = transaction.NetworkFee,
                                         FeeAssetSymbol = transaction.FeeCurrency,

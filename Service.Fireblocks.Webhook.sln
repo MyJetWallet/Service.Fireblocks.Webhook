@@ -30,6 +30,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.Webhook.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.Webhook.Client", "src\Service.Fireblocks.Webhook.Client\Service.Fireblocks.Webhook.Client.csproj", "{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Fireblocks.MyNoSql", "src\Service.Fireblocks.MyNoSql\Service.Fireblocks.MyNoSql.csproj", "{FA4B1667-00B0-4523-A09C-AE9D1F29DEC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA4B1667-00B0-4523-A09C-AE9D1F29DEC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA4B1667-00B0-4523-A09C-AE9D1F29DEC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA4B1667-00B0-4523-A09C-AE9D1F29DEC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA4B1667-00B0-4523-A09C-AE9D1F29DEC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +76,7 @@ Global
 		{24C72434-790F-409C-9B88-DFD4E52262C5} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 		{6746E928-348C-4918-99D1-CFAC986EBE81} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 		{2C30C330-569C-4625-8DF5-1F24DFD8ABFE} = {EB832FF1-4E01-40ED-BAC4-5ECF70F5C108}
+		{FA4B1667-00B0-4523-A09C-AE9D1F29DEC6} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BF00C9D-AD55-40F2-8FE3-E5C3559B3E26}

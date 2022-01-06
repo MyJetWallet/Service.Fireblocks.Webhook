@@ -7,5 +7,6 @@
         public const string FireblocksWithdrawalSignalTopic = "jet-wallet-fireblocks-withdrawal-signal";
 
         public const string FireblocksWebhookInternalTopic = "jet-wallet-fireblocks-webhook-internal";
+        public const string FireblocksWebhookBalanceInternalTopic = "jet-wallet-fireblocks-webhook-balance-internal";
     }
 }

@@ -22,5 +22,8 @@ namespace Service.Fireblocks.Webhook.Settings
 
         [YamlProperty("FireblocksWebhook.SpotServiceBusHostPort")]
         public string SpotServiceBusHostPort { get; internal set; }
+
+        [YamlProperty("FireblocksWebhook.MyNoSqlWriterUrl")]
+        public string MyNoSqlWriterUrl { get; internal set; }
     }
 }
