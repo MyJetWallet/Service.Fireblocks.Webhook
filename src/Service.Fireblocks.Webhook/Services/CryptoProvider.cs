@@ -29,9 +29,9 @@ namespace Service.Fireblocks.Webhook.Services
         public static bool VerifySignature(byte[] data, byte[] signature)
         {
             byte[] hash;
-            using (SHA512 sha256 = SHA512.Create())
+            using (SHA512 sha512 = SHA512.Create())
             {
-                hash = sha256.ComputeHash(data);
+                hash = sha512.ComputeHash(data);
             }
 
             bool b = false;
