@@ -32,6 +32,7 @@ namespace Service.Fireblocks.Webhook.Services
         private readonly IServiceBusPublisher<WebhookQueueItem> _serviceBusPublisher;
         private readonly IWalletService _walletService;
 
+
         /// <summary>
         /// Middleware that handles all unhandled exceptions and logs them as errors.
         /// </summary>
@@ -42,7 +43,8 @@ namespace Service.Fireblocks.Webhook.Services
         {
             _next = next;
             _logger = logger;
-            this._serviceBusPublisher = serviceBusPublisher;
+            _serviceBusPublisher = serviceBusPublisher;
+
         }
 
         /// <summary>
@@ -58,86 +60,99 @@ namespace Service.Fireblocks.Webhook.Services
                 return;
             }
 
+            using var activity = MyTelemetry.StartActivity("Receive fireblocks webhook");
+
             var path = context.Request.Path;
             var method = context.Request.Method;
 
             var body = "--none--";
+            var query = context.Request.QueryString;
+            var signature = context.Request.Headers["Fireblocks-Signature"].FirstOrDefault();
+            byte[] bodyArray;
 
-            if (method == "POST")
+            if (method != "POST")
             {
-                await using var buffer = new MemoryStream();
-
-                await context.Request.Body.CopyToAsync(buffer);
-
-                buffer.Position = 0L;
-
-                using var reader = new StreamReader(buffer);
-
-                body = await reader.ReadToEndAsync();
+                _logger.LogInformation($"'{path}' | {query} | {method}\nNO-BODY\n{signature}");
+                context.Response.StatusCode = 200;
+                _logger.LogWarning("Message from Fireblocks: @{context} method is not POST", body);
+                return;
             }
 
-            var query = context.Request.QueryString;
+            await using var buffer = new MemoryStream();
 
-            _logger.LogInformation($"'{path}' | {query} | {method}\n{body}");
+            await context.Request.Body.CopyToAsync(buffer);
 
+            buffer.Position = 0L;
 
-            if (method == "POST")
+            using var reader = new StreamReader(buffer);
+
+            body = await reader.ReadToEndAsync();
+            bodyArray = buffer.GetBuffer();
+
+            _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{signature}");
+
+            //Fireblocks - Signature = Base64(RSA512(WEBHOOK_PRIVATE_KEY, SHA512(eventBody)))
+
+            if (!CryptoProvider.VerifySignature(bodyArray, Convert.FromBase64String(signature)))
             {
-                using var activity = MyTelemetry.StartActivity("Receive fireblocks webhook");
+                //context.Response.StatusCode = 401;
+                _logger.LogWarning("Message from Fireblocks: @{context} webhook can't be verified", body);
 
-                foreach (var header in context.Request.Headers)
-                {
-                    activity.AddTag(header.Key, header.Value);
-                }
+                //return;
+            }
 
-                activity.AddTag("Body", body);
+            foreach (var header in context.Request.Headers)
+            {
+                activity.AddTag(header.Key, header.Value);
+            }
 
-                _logger.LogInformation("Message from Fireblocks: @{context}", body);
+            activity.AddTag("Body", body);
 
-                var webhook = Newtonsoft.Json.JsonConvert.DeserializeObject<WebhookBase>(body);
+            _logger.LogInformation("Message from Fireblocks: @{context}", body);
 
-                if (webhook == null)
-                {
-                    context.Response.StatusCode = 400;
-                    _logger.LogWarning("Message from Fireblocks: @{context} can't be parsed", body);
+            var webhook = Newtonsoft.Json.JsonConvert.DeserializeObject<WebhookBase>(body);
 
-                    return;
-                }
+            if (webhook == null)
+            {
+                context.Response.StatusCode = 400;
+                _logger.LogWarning("Message from Fireblocks: @{context} can't be parsed", body);
 
-                switch (webhook.Type)
-                {
-                    case WebhookType.TRANSACTION_CREATED:
-                    case WebhookType.TRANSACTION_APPROVAL_STATUS_UPDATED:
-                    case WebhookType.TRANSACTION_STATUS_UPDATED:
+                return;
+            }
+
+            switch (webhook.Type)
+            {
+                case WebhookType.TRANSACTION_CREATED:
+                case WebhookType.TRANSACTION_APPROVAL_STATUS_UPDATED:
+                case WebhookType.TRANSACTION_STATUS_UPDATED:
+                    {
+                        await _serviceBusPublisher.PublishAsync(new WebhookQueueItem
                         {
-                            await _serviceBusPublisher.PublishAsync(new WebhookQueueItem
-                            {
-                                Data = body,
-                                Type = webhook.Type,
-                            });
-                            break;
-                        }
+                            Data = body,
+                            Type = webhook.Type,
+                        });
+                        break;
+                    }
 
-                    case WebhookType.VAULT_ACCOUNT_ADDED:
-                    case WebhookType.NETWORK_CONNECTION_ADDED:
-                    case WebhookType.EXCHANGE_ACCOUNT_ADDED:
-                    case WebhookType.FIAT_ACCOUNT_ADDED:
-                    case WebhookType.VAULT_ACCOUNT_ASSET_ADDED:
-                    case WebhookType.INTERNAL_WALLET_ASSET_ADDED:
-                    case WebhookType.EXTERNAL_WALLET_ASSET_ADDED:
-                        {
-                            //SKIP... FOR NOW!
-                            break;
-                        }
+                case WebhookType.VAULT_ACCOUNT_ADDED:
+                case WebhookType.NETWORK_CONNECTION_ADDED:
+                case WebhookType.EXCHANGE_ACCOUNT_ADDED:
+                case WebhookType.FIAT_ACCOUNT_ADDED:
+                case WebhookType.VAULT_ACCOUNT_ASSET_ADDED:
+                case WebhookType.INTERNAL_WALLET_ASSET_ADDED:
+                case WebhookType.EXTERNAL_WALLET_ASSET_ADDED:
+                    {
+                        //SKIP... FOR NOW!
+                        break;
+                    }
 
-                    default:
-                        {
-                            context.Response.StatusCode = 400;
-                            _logger.LogWarning("Message from Fireblocks: @{context} webhook can't be reckognised", body);
+                default:
+                    {
+                        context.Response.StatusCode = 400;
+                        _logger.LogWarning("Message from Fireblocks: @{context} webhook can't be reckognised", body);
 
-                            return;
-                        }
-                }
+                        return;
+                    }
             }
 
             context.Response.StatusCode = 200;

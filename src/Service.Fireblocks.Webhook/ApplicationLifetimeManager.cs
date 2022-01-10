@@ -4,6 +4,7 @@ using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.TcpClient;
+using Service.Fireblocks.Webhook.Services;
 
 namespace Service.Fireblocks.Webhook
 {
@@ -27,6 +28,7 @@ namespace Service.Fireblocks.Webhook
 
         protected override void OnStarted()
         {
+            CryptoProvider.Init();
             _logger.LogInformation("OnStarted has been called");
             _myNoSqlClient.Start();
             _myServiceBusTcpClient.Start();

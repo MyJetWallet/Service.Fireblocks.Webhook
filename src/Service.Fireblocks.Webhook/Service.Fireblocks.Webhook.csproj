@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="webhook_sig.pub" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="webhook_sig.pub">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.41.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
@@ -24,6 +34,7 @@
     <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.2.0" />
     <PackageReference Include="MyJetWallet.Service.Fireblocks.Api.Client" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.2" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
     <PackageReference Include="SimpleTrading.BaseMetrics" Version="1.0.3" />
