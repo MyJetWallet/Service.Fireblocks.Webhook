@@ -93,6 +93,10 @@ namespace Service.Fireblocks.Webhook.Services
 
             //Fireblocks - Signature = Base64(RSA512(WEBHOOK_PRIVATE_KEY, SHA512(eventBody)))
 
+            var bAStr = Convert.ToBase64String(bodyArray);
+
+            _logger.LogInformation("Body Array: @{context} webhook is verified", new { Signature = signature, Body = bAStr });
+
             if (!CryptoProvider.VerifySignature(bodyArray, Convert.FromBase64String(signature)))
             {
                 context.Response.StatusCode = 401;
