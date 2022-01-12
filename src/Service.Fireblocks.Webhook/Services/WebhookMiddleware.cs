@@ -96,13 +96,17 @@ namespace Service.Fireblocks.Webhook.Services
             if (!CryptoProvider.VerifySignature(bodyArray, Convert.FromBase64String(signature)))
             {
                 context.Response.StatusCode = 401;
-                _logger.LogError("Message from Fireblocks: @{context} webhook can't be verified", body);
+                var bAStr = Convert.ToBase64String(bodyArray);
+                _logger.LogError("Message from Fireblocks: {context} webhook can't be verified", (new { 
+                    Body = body,
+                    Signature = signature, 
+                    BodyBase64 = bAStr }).ToJson());
 
                 return;
             } else
             {
                 var bAStr = Convert.ToBase64String(bodyArray);
-                _logger.LogInformation("Body Array: @{context} webhook is verified", new { Signature = signature, Body = bAStr });
+                _logger.LogInformation("Body Array: {context} webhook is verified", new { Signature = signature, Body = bAStr });
             }
 
             foreach (var header in context.Request.Headers)
