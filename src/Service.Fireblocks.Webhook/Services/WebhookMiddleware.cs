@@ -97,10 +97,10 @@ namespace Service.Fireblocks.Webhook.Services
             {
                 context.Response.StatusCode = 401;
                 var bAStr = Convert.ToBase64String(bodyArray);
-                _logger.LogError("Message from Fireblocks: {context} webhook can't be verified", (new { 
+                _logger.LogError("Message from Fireblocks: {context} webhook can't be verified", new { 
                     Body = body,
                     Signature = signature, 
-                    BodyBase64 = bAStr }).ToJson());
+                    BodyBase64 = bAStr });
 
                 return;
             } else
