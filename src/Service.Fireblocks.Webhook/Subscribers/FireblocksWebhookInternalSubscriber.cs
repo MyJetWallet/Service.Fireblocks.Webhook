@@ -76,6 +76,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                             var network = mapping.AssetMapping.NetworkId;
                             var vaultAccountsList = new List<string>();
 
+
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
                                 if (!string.IsNullOrEmpty(transaction.ExternalTxId))
@@ -122,31 +123,31 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                         throw new Exception("Error from Blockchain.Wallets");
                                     }
 
-                                    if (users.Users == null || !users.Users.Any())
+                                    if (users.Users != null && users.Users.Any())
                                     {
-                                        _logger.LogError("there is no user for this address! {@context}", webhook);
-                                        return;
+                                        var firstUser = users.Users.First();
+
+                                        var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
+                                        await _depositPublisher.PublishAsync(new FireblocksDepositSignal
+                                        {
+                                            Amount = transaction.Amount,
+                                            AssetSymbol = assetSymbol,
+                                            Network = network,
+                                            BrokerId = firstUser.BrokerId,
+                                            ClientId = firstUser.ClientId,
+                                            WalletId = firstUser.WalletId,
+                                            Comment = "",
+                                            EventDate = createdAt.DateTime,
+                                            FeeAmount = transaction.NetworkFee,
+                                            FeeAssetSymbol = transaction.FeeCurrency,
+                                            Status = FireblocksDepositStatus.Completed,
+
+                                            TransactionId = transaction.TxHash,
+                                        });
+                                    } else
+                                    {
+                                        _logger.LogWarning("there is no user for this address! {@context}", webhook);
                                     }
-
-                                    var firstUser = users.Users.First();
-
-                                    var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
-                                    await _depositPublisher.PublishAsync(new FireblocksDepositSignal
-                                    {
-                                        Amount = transaction.Amount,
-                                        AssetSymbol = assetSymbol,
-                                        Network = network,
-                                        BrokerId = firstUser.BrokerId,
-                                        ClientId = firstUser.ClientId,
-                                        WalletId = firstUser.WalletId,
-                                        Comment = "",
-                                        EventDate = createdAt.DateTime,
-                                        FeeAmount = transaction.NetworkFee,
-                                        FeeAssetSymbol = transaction.FeeCurrency,
-                                        Status = FireblocksDepositStatus.Completed,
-                                        
-                                        TransactionId = transaction.TxHash,
-                                    });
 
                                     break;
                                 }
