@@ -148,8 +148,6 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     {
                                         _logger.LogWarning("there is no user for this address! {@context}", webhook);
                                     }
-
-                                    break;
                                 }
 
                                 if (transaction.Destinations.Any())

@@ -47,7 +47,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                             VaultAccountId = vaultAccountId
                         });
 
-                        if (vaultAcc.Error != null)
+                        if (vaultAcc.Error == null)
                         {
                             var asset = vaultAcc.VaultAccount.FirstOrDefault()?.VaultAssets
                                 .FirstOrDefault(x => x.Id == message.FireblocksAssetId);
