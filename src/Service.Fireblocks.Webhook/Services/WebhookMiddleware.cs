@@ -30,7 +30,6 @@ namespace Service.Fireblocks.Webhook.Services
         private readonly RequestDelegate _next;
         private readonly ILogger<WebhookMiddleware> _logger;
         private readonly IServiceBusPublisher<WebhookQueueItem> _serviceBusPublisher;
-        private readonly IWalletService _walletService;
 
 
         /// <summary>
@@ -83,10 +82,9 @@ namespace Service.Fireblocks.Webhook.Services
             await context.Request.Body.CopyToAsync(buffer);
 
             buffer.Position = 0L;
-
             using var reader = new StreamReader(buffer);
-
             body = await reader.ReadToEndAsync();
+            buffer.Position = 0L;
             bodyArray = buffer.GetBuffer();
 
             _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{signature}");
@@ -106,7 +104,10 @@ namespace Service.Fireblocks.Webhook.Services
             } else
             {
                 var bAStr = Convert.ToBase64String(bodyArray);
-                _logger.LogInformation("Body Array: {context} webhook is verified", new { Signature = signature, Body = bAStr });
+                _logger.LogInformation("Body Array: {context} webhook is verified", new { 
+                    Body = body, 
+                    Signature = signature, 
+                    BodyBase64 = bAStr });
             }
 
             foreach (var header in context.Request.Headers)
