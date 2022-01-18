@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NUnit.Framework;
 using Service.Fireblocks.Webhook.Services;
 
@@ -33,23 +34,11 @@ namespace Service.Circle.Webhooks.Tests
             Assert.False(isVerified);
         }
 
-        //[Test]
-        //public void Test2()
-        //{
-        //    var signature = Convert.FromBase64String("FeIUoR1ZgkSEZ8R4uqwaoze7NtPm/vcG9W8lqk1lAcaX2/ea8tf3wyjhBLlZ9FkCVk+2ztObx/xgrqIRR9drYXlgYRql+2aIim/NO0WZu22UGQM6SCSGEgc0AQQ6WmHWry4VGsl/oQbY2ksizjaoyATJAxr4GsUHmeWuELs3a76cWNZXjSnPHyCsfMTjoI5fGSjjBou9ZZpogRWqallqTgOSQoF+nWUjNvuQPKMr1/iPcYH1VIbLVNcpgJx4rt+sVi8FFVIXMTrl3FHn0OyxpmDS/EzLwkvVKkmXXsMWE4Ip7HY+KLTydSw5z9NB7xK7w0H6whq1FuXBGe2QmTvHPN5m+i0xE9AyaZAvt/9QG+ioh+DKbPc2r0gN7cAVVO+Ayiw1QwK4ft0MRc8uTYCOK4/uQrUNUqQ8HTpHk3aqPugyDlpGlJT30KgBTs4WqYLVM4qsQ8aUdy4SXNN1m3qjuRydvL9K5Nljqb/8pdKM+pNQ2Syi4MEjumCJKj/+JPjac8/8ETNLm+MKlxehr5Mq5vlFCHEoVOK2maCzb5L/1FOh4yvI5JeBQWp7lumLuRHRZ4KycBqYp2SjG+pxlFXMOQPj8tds43bKWxQIfxz3nAiNE/1bWAX2ig/kBOowQNim38yDkc2InIqZ7JYclCwJmY+IQcKRptySIQUM3f1xJCk=");
-        //    var data = Convert.FromBase64String("eyJ0eXBlIjoiVkFVTFRfQUNDT1VOVF9BRERFRCIsInRlbmFudElkIjoiZjNlYjdjYzktZjc2ZC01MDU2LWIyYmQtODE5NDc1ZWI4YjA2IiwidGltZXN0YW1wIjoxNjQyMDE0ODA1MDQ2LCJkYXRhIjp7ImlkIjoiMTkiLCJuYW1lIjoidGVzdC0zIiwiaGlkZGVuT25VSSI6ZmFsc2UsImFzc2V0cyI6W119fQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==");
-
-        //    var isVerified = CryptoProvider.VerifySignature(data, signature);
-
-        //    Assert.True(isVerified);
-        //}
-
         [Test]
         public void Test3()
         {
             var signature = Convert.FromBase64String("Wd6aqEx0xV0nJ4+lf84H/GEEVV0TC/GQIy7I3ICsEoO6+PCWUSYNR2ew3LtcZLv+86JugowgcU9X8SJwRqF0H5BpkNpFtL6ThMz9ToKU+k5QkceOnD5oihB41mB+tFQKOFhghDOMEx0eAKs866wVtjJKZPJZQRr3812i2g9FCNjqKJMEkez5gjCwrxILo24BHBHSP17lxnytN78nQkRqEE197ijqceJ9QanRmordiEln0rhIUaQ+SPvoC//DCPhgpwGdqY8oaneoca6FoG6M8PqJNwsN2bshLBKI/rZnewLmbkJHeY3BkkTW+hWtliVBG9FJxIbRTfURcz0qOkB+LtxYtIt+moo7WMTTDZYgz+yrALwtfJM8AfJARwfyaLuDTakCVZ7FHV/ofWmDO4XhJmpD5GJHOLmGbzZ8/PumuzipGabUXcXvmaDBj/vM/rySLAP/eQaCPoKSlSsXwH0Q9qE4wsjMmsb2AsOfARMajCEqixSLinv7rbLCDYMmVkfohSR4QVnFnk1Y2CyRGbH2ck1x69K/ZF1PoDeTUN+uXvD8KLxUaqwJYt23g+Wycbi7YM6nQAKrjxbwZ7aJDksjXnyvAG6FTwGhYZkh987Sl+1AE5BvqosgvfKdp6P6wkwwv1DFvLydn1gQfRYaO+P3OXJZpT7hCn8caCYKYzi3Eqk=");
             var data = Convert.FromBase64String("eyJ0eXBlIjoiVkFVTFRfQUNDT1VOVF9BU1NFVF9BRERFRCIsInRlbmFudElkIjoiZjNlYjdjYzktZjc2ZC01MDU2LWIyYmQtODE5NDc1ZWI4YjA2IiwidGltZXN0YW1wIjoxNjQyNDEzNDA0NzcwLCJkYXRhIjp7ImFjY291bnRJZCI6IjE5IiwiYWNjb3VudE5hbWUiOiJ0ZXN0LTMiLCJhc3NldElkIjoiQlRDIn19");
-            //"eyJ0eXBlIjoiVkFVTFRfQUNDT1VOVF9BU1NFVF9BRERFRCIsInRlbmFudElkIjoiZjNlYjdjYzktZjc2ZC01MDU2LWIyYmQtODE5NDc1ZWI4YjA2IiwidGltZXN0YW1wIjoxNjQyNDEzNDA0NzcwLCJkYXRhIjp7ImFjY291bnRJZCI6IjE5IiwiYWNjb3VudE5hbWUiOiJ0ZXN0LTMiLCJhc3NldElkIjoiQlRDIn19AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
 
             var isVerified = CryptoProvider.VerifySignature(data, signature);
 

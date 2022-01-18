@@ -86,6 +86,7 @@ namespace Service.Fireblocks.Webhook.Services
             body = await reader.ReadToEndAsync();
             buffer.Position = 0L;
             bodyArray = buffer.GetBuffer();
+            var bAStr = Convert.ToBase64String(bodyArray);
 
             _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{signature}");
 
@@ -93,17 +94,15 @@ namespace Service.Fireblocks.Webhook.Services
 
             if (!CryptoProvider.VerifySignature(bodyArray, Convert.FromBase64String(signature)))
             {
-                //context.Response.StatusCode = 401;
-                var bAStr = Convert.ToBase64String(bodyArray);
+                context.Response.StatusCode = 401;
                 _logger.LogWarning("Message from Fireblocks: {context} webhook can't be verified", new { 
                     Body = body,
                     Signature = signature, 
                     BodyBase64 = bAStr });
 
-                //return;
+                return;
             } else
             {
-                var bAStr = Convert.ToBase64String(bodyArray);
                 _logger.LogInformation("Body Array: {context} webhook is verified", new { 
                     Body = body, 
                     Signature = signature, 
