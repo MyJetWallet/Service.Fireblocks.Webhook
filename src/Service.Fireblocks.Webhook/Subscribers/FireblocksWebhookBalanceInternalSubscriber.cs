@@ -49,7 +49,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                         if (vaultAcc.Error == null)
                         {
-                            var asset = vaultAcc.VaultAccount.FirstOrDefault()?.VaultAssets
+                            var firstAcc = vaultAcc.VaultAccount.FirstOrDefault();
+                            var asset = firstAcc?.VaultAssets
                                 .FirstOrDefault(x => x.Id == message.FireblocksAssetId);
 
                             if (asset != null)
@@ -57,7 +58,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                 await _vaultAssetNoSql.InsertOrReplaceAsync(VaultAssetNoSql.Create(vaultAccountId, 
                                     message.AssetSymbol,
                                     message.AssetNetwork,
-                                    asset));
+                                    asset,
+                                    firstAcc.Name));
                             } else
                             {
                                 _logger.LogError("There is no balance for fireblocks asset {@context}", message);

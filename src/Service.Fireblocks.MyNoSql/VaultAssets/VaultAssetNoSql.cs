@@ -18,7 +18,14 @@ namespace Service.Blockchain.Wallets.MyNoSql.Addresses
 
         public VaultAsset VaultAsset { get; set; }
 
-        public static VaultAssetNoSql Create(string vaultAccountId, string assetSymbol, string assetNetwork, VaultAsset vaultAsset)
+        public string VaultAccountName { get; set; }
+
+        public static VaultAssetNoSql Create(
+            string vaultAccountId,
+            string assetSymbol,
+            string assetNetwork,
+            VaultAsset vaultAsset,
+            string vaultAccountName)
         {
             return new VaultAssetNoSql()
             {
@@ -27,7 +34,8 @@ namespace Service.Blockchain.Wallets.MyNoSql.Addresses
                 VaultAsset = vaultAsset,
                 AssetNetwork = assetNetwork,
                 AssetSymbol = assetSymbol,
-                VaultAccountId = vaultAccountId
+                VaultAccountId = vaultAccountId,
+                VaultAccountName = vaultAccountName,
             };
         }
 
