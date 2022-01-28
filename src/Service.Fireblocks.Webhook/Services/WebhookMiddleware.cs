@@ -7,12 +7,10 @@ using Microsoft.Extensions.Logging;
 using MyJetWallet.Fireblocks.Client;
 using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
-using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
 using Service.Bitgo.DepositDetector.Domain.Models;
 using Service.Bitgo.DepositDetector.Grpc;
 using Service.Blockchain.Wallets.Grpc;
-using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
 using Service.Fireblocks.Webhook.Domain.Models;
 using Service.Fireblocks.Webhook.Domain.Models.Deposits;
 using Service.Fireblocks.Webhook.Events;
@@ -51,6 +49,13 @@ namespace Service.Fireblocks.Webhook.Services
         /// </summary>
         public async Task Invoke(HttpContext context)
         {
+            if (context.Request.ContentType == "application/grpc")
+            {
+                await _next.Invoke(context);
+
+                return;
+            }
+
             if (!context.Request.Path.StartsWithSegments("/fireblocks", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogInformation("Receive call to {path}, method: {method}", context.Request.Path,

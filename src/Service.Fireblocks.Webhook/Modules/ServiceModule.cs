@@ -37,6 +37,8 @@ namespace Service.Fireblocks.Webhook.Modules
 
             builder.RegisterMyServiceBusPublisher<WebhookQueueItem>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookInternalTopic, false);
 
+            builder.RegisterMyServiceBusPublisher<StartBalanceCacheUpdate>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookManualBalanceChangeInternalTopic, false);
+
             builder.RegisterMyServiceBusPublisher<VaultAccountBalanceCacheUpdate>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookBalanceInternalTopic, false);
 
             builder.RegisterMyServiceBusSubscriberSingle<WebhookQueueItem>(serviceBusClient, 
@@ -47,6 +49,10 @@ namespace Service.Fireblocks.Webhook.Modules
                 Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookBalanceInternalTopic,
                 "service-fireblocks-webhook", MyServiceBus.Abstractions.TopicQueueType.Permanent);
 
+            builder.RegisterMyServiceBusSubscriberSingle<StartBalanceCacheUpdate>(serviceBusClient,
+                Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookManualBalanceChangeInternalTopic,
+                "service-fireblocks-webhook", MyServiceBus.Abstractions.TopicQueueType.Permanent);
+
             builder
                .RegisterType<FireblocksWebhookInternalSubscriber>()
                .AutoActivate()
@@ -54,6 +60,11 @@ namespace Service.Fireblocks.Webhook.Modules
 
             builder
                .RegisterType<FireblocksWebhookBalanceInternalSubscriber>()
+               .AutoActivate()
+               .SingleInstance();
+
+            builder
+               .RegisterType<FireblocksWebhookStartBalanceInvalidationInternalSubscriber>()
                .AutoActivate()
                .SingleInstance();
         }

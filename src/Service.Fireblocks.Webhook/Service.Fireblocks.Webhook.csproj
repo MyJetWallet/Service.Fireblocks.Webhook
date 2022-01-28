@@ -44,6 +44,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Service.Fireblocks.MyNoSql\Service.Fireblocks.MyNoSql.csproj" />
+    <ProjectReference Include="..\Service.Fireblocks.Webhook.Grpc\Service.Fireblocks.Webhook.Grpc.csproj" />
     <ProjectReference Include="..\Service.Fireblocks.Webhook.ServiceBus\Service.Fireblocks.Webhook.ServiceBus.csproj" />
   </ItemGroup>
 

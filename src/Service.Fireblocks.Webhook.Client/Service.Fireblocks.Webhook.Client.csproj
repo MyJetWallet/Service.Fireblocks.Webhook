@@ -8,6 +8,7 @@
     <ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.MyNoSql\Service.Fireblocks.MyNoSql.csproj" />
     <ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.Domain.Models\Service.Fireblocks.Webhook.Domain.Models.csproj" />
 	<ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.Domain\Service.Fireblocks.Webhook.Domain.csproj" />
+	<ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.Grpc\Service.Fireblocks.Webhook.Grpc.csproj" />
 	<ProjectReference PrivateAssets="All" Include="..\Service.Fireblocks.Webhook.ServiceBus\Service.Fireblocks.Webhook.ServiceBus.csproj" />
   </ItemGroup>
 

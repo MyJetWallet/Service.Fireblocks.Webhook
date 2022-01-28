@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
+using Service.Fireblocks.Webhook.Grpc;
 using Service.Fireblocks.Webhook.Modules;
 using Service.Fireblocks.Webhook.Services;
 using SimpleTrading.ServiceStatusReporterConnector;
@@ -44,6 +45,7 @@ namespace Service.Fireblocks.Webhook
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGrpcSchema<BalanceCacheService, IBalanceCacheService>();
                 endpoints.MapGrpcSchemaRegistry();
 
                 endpoints.MapGet("/",

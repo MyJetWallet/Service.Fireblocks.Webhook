@@ -10,4 +10,9 @@
     <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Service.Fireblocks.Webhook.Client\Service.Fireblocks.Webhook.Client.csproj" />
+    <ProjectReference Include="..\..\src\Service.Fireblocks.Webhook.Grpc\Service.Fireblocks.Webhook.Grpc.csproj" />
+  </ItemGroup>
+
 </Project>

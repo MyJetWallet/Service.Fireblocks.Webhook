@@ -55,12 +55,22 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             if (asset != null)
                             {
-                                await _vaultAssetNoSql.InsertOrReplaceAsync(VaultAssetNoSql.Create(vaultAccountId, 
+                                if (asset.Total == 0)
+                                {
+                                    await _vaultAssetNoSql.DeleteAsync(VaultAssetNoSql.GeneratePartitionKey(vaultAccountId),
+                                        VaultAssetNoSql.GenerateRowKey(message.AssetSymbol,
+                                    message.AssetNetwork));
+                                }
+                                else
+                                {
+                                    await _vaultAssetNoSql.InsertOrReplaceAsync(VaultAssetNoSql.Create(vaultAccountId,
                                     message.AssetSymbol,
                                     message.AssetNetwork,
                                     asset,
                                     firstAcc.Name));
-                            } else
+                                }
+                            }
+                            else
                             {
                                 _logger.LogError("There is no balance for fireblocks asset {@context}", message);
                             }

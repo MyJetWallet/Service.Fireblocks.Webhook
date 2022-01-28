@@ -8,8 +8,4 @@
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Service.Circle.Webhooks.Domain.Models\Service.Circle.Webhooks.Domain.Models.csproj" />
-  </ItemGroup>
-
 </Project>
