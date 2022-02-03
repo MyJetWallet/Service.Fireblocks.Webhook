@@ -102,9 +102,21 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     vaultAccountsList.Add(transaction.Source.Id);
                                 }
 
-                                if (transaction.Destination.Type == TransferPeerPathType.VAULT_ACCOUNT)
+                                bool isGasTransaction = !string.IsNullOrEmpty(transaction.Source.Name) &&
+                                    transaction.Source.Name.ToLowerInvariant().Contains("gas station");
+
+                                if (isGasTransaction)
+                                    _logger.LogInformation("TRANSACTION FROM GAS STATION! {@context}", webhook);
+
+                                bool isDeposit = transaction.Destination.Type == TransferPeerPathType.VAULT_ACCOUNT;
+
+                                if (isDeposit)
                                 {
                                     vaultAccountsList.Add(transaction.Destination.Id);
+                                }
+
+                                if (isDeposit && !isGasTransaction)
+                                {
                                     var users = await _walletService.GetUserByAddressAsync(new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest
                                     {
                                         Addresses = new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest.AddressAndTag[]
