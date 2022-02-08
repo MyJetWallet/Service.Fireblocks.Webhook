@@ -79,7 +79,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
-                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network);
+                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Completed);
 
                                 if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
@@ -170,7 +170,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                        transaction.Status == TransactionResponseStatus.TIMEOUT)
                             {
                                 _logger.LogWarning("Message from Fireblocks Queue: {@context} transaction status indicates failure", body);
-                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network);
+                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
+                                    Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Failed);
                             }
 
                             break;
@@ -192,7 +193,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             }
         }
 
-        private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol, string network)
+        private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol, string network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus status)
         {
             if (!string.IsNullOrEmpty(transaction.ExternalTxId) ||
                                                 !string.IsNullOrEmpty(transaction.Note))
@@ -207,7 +208,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                     EventDate = createdAt.DateTime,
                     FeeAmount = transaction.NetworkFee,
                     FeeAssetSymbol = transaction.FeeCurrency,
-                    Status = Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Failed,
+                    Status = status,
                     TransactionId = transaction.TxHash,
                     ExternalId = transaction.ExternalTxId,
                     InternalNote = transaction.Note
