@@ -36,5 +36,8 @@ namespace Service.Fireblocks.Webhook.ServiceBus.Deposits
         
         [DataMember(Order = 10)]
         public string Network { get; set; }
+
+        [DataMember(Order = 11)]
+        public string InternalNote { get; set; }
     }
 }
