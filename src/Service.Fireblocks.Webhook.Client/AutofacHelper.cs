@@ -8,7 +8,7 @@ namespace Service.Fireblocks.Webhook.Client
 {
     public static class AutofacHelper
     {
-        public static void RegisterFireblocksWebhookCache(this ContainerBuilder builder, MyNoSqlTcpClient myNoSqlTcpClient)
+        public static void RegisterFireblocksWebhookCache(this ContainerBuilder builder, IMyNoSqlSubscriber myNoSqlTcpClient)
         {
             builder.RegisterMyNoSqlReader<VaultAssetNoSql>(myNoSqlTcpClient, VaultAssetNoSql.TableName);
         }

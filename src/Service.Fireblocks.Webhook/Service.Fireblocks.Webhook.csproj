@@ -31,15 +31,14 @@
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
     <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="2.7.1" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.2.1" />
-    <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.4.0" />
-    <PackageReference Include="MyJetWallet.Service.Fireblocks.Api.Client" Version="1.4.2" />
+    <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.5.0" />
+    <PackageReference Include="MyJetWallet.Service.Fireblocks.Api.Client" Version="1.4.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.2" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
     <PackageReference Include="SimpleTrading.BaseMetrics" Version="1.0.3" />
     <PackageReference Include="SimpleTrading.ServiceStatusReporterConnector" Version="1.0.9" />
-    <PackageReference Include="MySettingsReader" Version="1.2.2" />
   </ItemGroup>
 
   <ItemGroup>
