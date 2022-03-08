@@ -49,16 +49,6 @@ namespace Service.Fireblocks.Webhook.Services
                         }
                     };
 
-                if (assetMapping.AssetMapping.DepositType != MyJetWallet.Fireblocks.Domain.Models.AssetMappngs.DepositType.Intermediate)
-                    return new UpdateBalancesResponse
-                    {
-                        Error = new Grpc.Models.Common.ErrorResponse
-                        {
-                            Message = $"Asset should be of deposit type {MyJetWallet.Fireblocks.Domain.Models.AssetMappngs.DepositType.Intermediate}",
-                            ErrorCode = Grpc.Models.Common.ErrorCode.ApiError
-                        }
-                    };
-
                 await _startBalanceMessagePublisher.PublishAsync(new StartBalanceCacheUpdate
                 {
                     AssetNetwork = request.AsssetNetwork,
