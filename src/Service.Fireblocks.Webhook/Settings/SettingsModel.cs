@@ -15,18 +15,21 @@ namespace Service.Fireblocks.Webhook.Settings
         public LogElkSettings ElkLogs { get; set; }
 
         [YamlProperty("FireblocksWebhook.MyNoSqlReaderHostPort")]
-        public string MyNoSqlReaderHostPort { get; internal set; }
+        public string MyNoSqlReaderHostPort { get; set; }
 
         [YamlProperty("FireblocksWebhook.BlockchainWalletsGrpcServiceUrl")]
-        public string BlockchainWalletsGrpcServiceUrl { get; internal set; }
+        public string BlockchainWalletsGrpcServiceUrl { get; set; }
 
         [YamlProperty("FireblocksWebhook.SpotServiceBusHostPort")]
-        public string SpotServiceBusHostPort { get; internal set; }
+        public string SpotServiceBusHostPort { get; set; }
 
         [YamlProperty("FireblocksWebhook.MyNoSqlWriterUrl")]
-        public string MyNoSqlWriterUrl { get; internal set; }
+        public string MyNoSqlWriterUrl { get;  set; }
 
         [YamlProperty("FireblocksWebhook.FireblocksApiUrl")]
-        public string FireblocksApiUrl { get; internal set; }
+        public string FireblocksApiUrl { get;  set; }
+
+        [YamlProperty("FireblocksWebhook.BalanceUpdatePeriodInSec")]
+        public int BalanceUpdatePeriodInSec { get;  set; }
     }
 }

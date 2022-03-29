@@ -1,12 +1,13 @@
 ﻿using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
-using MyJetWallet.Fireblocks.Client;
 using MyJetWallet.Sdk.Service;
 using MyNoSqlServer.Abstractions;
 using Service.Blockchain.Wallets.MyNoSql.Addresses;
 using Service.Fireblocks.Api.Grpc;
 using Service.Fireblocks.Webhook.ServiceBus.Balances;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,9 @@ namespace Service.Fireblocks.Webhook.Subscribers
         private readonly ILogger<FireblocksWebhookStartBalanceInvalidationInternalSubscriber> _logger;
         private readonly IMyNoSqlServerDataWriter<VaultAssetNoSql> _vaultAssetNoSql;
         private readonly IVaultAccountService _vaultClient;
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly object _locker = new ();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreDict = new ();
+
 
         public FireblocksWebhookStartBalanceInvalidationInternalSubscriber(
             ISubscriber<StartBalanceCacheUpdate> subscriber,
@@ -39,9 +42,21 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
             _logger.LogInformation("Processing StartBalanceCacheUpdate: {@context}", logContext);
 
+            if (!_semaphoreDict.TryGetValue(message.FireblocksAssetId, out var semaphore))
+            {
+                lock (_locker)
+                {
+                    if (!_semaphoreDict.TryGetValue(message.FireblocksAssetId, out semaphore))
+                    {
+                        semaphore = new SemaphoreSlim(1);
+                        _semaphoreDict.TryAdd(message.FireblocksAssetId, semaphore);
+                    }
+                }
+            };
+
             try
             {
-                await _semaphore.WaitAsync();
+                await semaphore.WaitAsync();
 
                 foreach (var item in await _vaultAssetNoSql.GetAsync())
                 {
@@ -112,7 +127,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             }
             finally
             {
-                _semaphore.Release();
+                semaphore.Release();
             }
         }
     }

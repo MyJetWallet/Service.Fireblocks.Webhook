@@ -6,6 +6,7 @@ using Service.Blockchain.Wallets.Client;
 using Service.Blockchain.Wallets.MyNoSql.Addresses;
 using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
 using Service.Fireblocks.Api.Client;
+using Service.Fireblocks.Webhook.Jobs;
 using Service.Fireblocks.Webhook.ServiceBus;
 using Service.Fireblocks.Webhook.ServiceBus.Balances;
 using Service.Fireblocks.Webhook.ServiceBus.Deposits;
@@ -65,6 +66,12 @@ namespace Service.Fireblocks.Webhook.Modules
 
             builder
                .RegisterType<FireblocksWebhookStartBalanceInvalidationInternalSubscriber>()
+               .AutoActivate()
+               .SingleInstance();
+
+            builder
+               .RegisterType<BalanceUpdateJob>()
+               .AsSelf()
                .AutoActivate()
                .SingleInstance();
         }
