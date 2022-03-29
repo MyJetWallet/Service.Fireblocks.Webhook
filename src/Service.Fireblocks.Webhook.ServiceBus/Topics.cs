@@ -10,6 +10,6 @@
 
         public const string FireblocksWebhookBalanceInternalTopic = "jet-wallet-fireblocks-webhook-balance-internal";
 
-        public const string FireblocksWebhookManualBalanceChangeInternalTopic = "jet-wallet-fireblocks-webhook--manual-balance-internal";
+        public const string FireblocksWebhookManualBalanceChangeInternalTopic = "jet-wallet-fireblocks-webhook-manual-balance-internal";
     }
 }
