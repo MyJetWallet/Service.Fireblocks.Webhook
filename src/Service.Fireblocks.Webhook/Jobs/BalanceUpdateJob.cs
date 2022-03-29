@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.Service.Tools;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
@@ -53,6 +54,7 @@ namespace Service.Fireblocks.Webhook.Jobs
 
                 foreach (var item in assetMappings)
                 {
+                    _logger.LogInformation("Requesting balance update for {context}", item.ToJson());
                     await _balanceCacheUpdatePublisher.PublishAsync(new StartBalanceCacheUpdate
                     {
                         AssetNetwork = item.AssetMapping.NetworkId,
