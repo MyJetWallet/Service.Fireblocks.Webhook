@@ -211,7 +211,9 @@ namespace Service.Fireblocks.Webhook.Subscribers
                     Status = status,
                     TransactionId = transaction.TxHash,
                     ExternalId = transaction.ExternalTxId,
-                    InternalNote = transaction.Note
+                    InternalNote = transaction.Note,
+                    DestinationAddress = transaction.DestinationAddress,
+                    DestinationTag = transaction.DestinationTag,
                 });
             }
         }
