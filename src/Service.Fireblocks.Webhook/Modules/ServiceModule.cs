@@ -3,6 +3,7 @@ using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using Service.AssetsDictionary.Client;
 using Service.AssetsDictionary.Client.Grpc;
+using Service.AssetsDictionary.Grpc;
 using Service.Blockchain.Wallets.Client;
 using Service.Blockchain.Wallets.MyNoSql.Addresses;
 using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
