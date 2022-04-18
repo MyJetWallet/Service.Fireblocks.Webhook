@@ -31,5 +31,8 @@ namespace Service.Fireblocks.Webhook.Settings
 
         [YamlProperty("FireblocksWebhook.BalanceUpdatePeriodInSec")]
         public int BalanceUpdatePeriodInSec { get;  set; }
+
+        [YamlProperty("FireblocksWebhook.AssetDictionaryGrpcServiceUrl")]
+        public string AssetDictionaryGrpcServiceUrl { get; set; }
     }
 }
