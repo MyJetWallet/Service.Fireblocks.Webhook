@@ -2,6 +2,7 @@
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using Service.AssetsDictionary.Client;
+using Service.AssetsDictionary.Client.Grpc;
 using Service.Blockchain.Wallets.Client;
 using Service.Blockchain.Wallets.MyNoSql.Addresses;
 using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
@@ -74,6 +75,13 @@ namespace Service.Fireblocks.Webhook.Modules
                .AsSelf()
                .AutoActivate()
                .SingleInstance();
+
+            var assetDictionaryFactory = new AssetsDictionaryClientFactory(Program.Settings.AssetDictionaryGrpcServiceUrl);
+
+            builder
+                .RegisterInstance(assetDictionaryFactory.GetBlockchainsDictionaryService())
+                .As<IBlockchainsDictionaryService>()
+                .SingleInstance();
         }
     }
 }
