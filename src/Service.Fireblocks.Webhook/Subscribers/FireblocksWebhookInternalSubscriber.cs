@@ -25,7 +25,6 @@ namespace Service.Fireblocks.Webhook.Subscribers
     {
         private readonly ILogger<FireblocksWebhookInternalSubscriber> _logger;
         private readonly IWalletService _walletService;
-        private readonly IBlockchainsDictionaryService _blockchainsDictionaryService;
         private readonly IMyNoSqlServerDataReader<AssetMappingNoSql> _assetMappingNoSql;
         private readonly IServiceBusPublisher<FireblocksDepositSignal> _depositPublisher;
         private readonly IServiceBusPublisher<FireblocksWithdrawalSignal> _withdrawalPublisher;
@@ -35,7 +34,6 @@ namespace Service.Fireblocks.Webhook.Subscribers
             ISubscriber<WebhookQueueItem> subscriber,
             ILogger<FireblocksWebhookInternalSubscriber> logger,
             IWalletService walletService,
-            IBlockchainsDictionaryService blockchainsDictionaryService,
             IMyNoSqlServerDataReader<AssetMappingNoSql> assetMappingNoSql,
             IServiceBusPublisher<FireblocksDepositSignal> serviceBusPublisher,
             IServiceBusPublisher<FireblocksWithdrawalSignal> withdrawalPublisher,
@@ -44,7 +42,6 @@ namespace Service.Fireblocks.Webhook.Subscribers
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
             _walletService = walletService;
-            _blockchainsDictionaryService = blockchainsDictionaryService;
             _assetMappingNoSql = assetMappingNoSql;
             _depositPublisher = serviceBusPublisher;
             _withdrawalPublisher = withdrawalPublisher;
@@ -105,64 +102,51 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                                 if (isDeposit && !isGasTransaction)
                                 {
-                                    var blockchain = await _blockchainsDictionaryService.GetBlockchainByIdAsync(new MyJetWallet.Domain.Assets.BlockchainIdentity
-                                    {
-                                        BrokerId = "jetwallet",
-                                        Name = mapping.AssetMapping.NetworkId,
-                                    });
-
                                     var destTag = transaction.DestinationTag ?? string.Empty;
-                                    if (!string.IsNullOrEmpty(blockchain.Value.TagSeparator) && string.IsNullOrEmpty(destTag))
-                                    {
-                                        _logger.LogInformation("DEPOSIT TO SERVICE ACCOUNT: {context}", webhook.Data);
-                                    }
-                                    else
-                                    {
 
-                                        var users = await _walletService.GetUserByAddressAsync(new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest
+                                    var users = await _walletService.GetUserByAddressAsync(new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest
+                                    {
+                                        Addresses = new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest.AddressAndTag[]
                                         {
-                                            Addresses = new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest.AddressAndTag[]
-                                            {
                                             new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest.AddressAndTag
                                             {
                                                 Address = transaction.DestinationAddress.ToLowerInvariant(),
                                                 Tag = destTag,
                                             }
-                                            },
+                                        },
+                                    });
+
+                                    if (users.Error != null)
+                                    {
+                                        _logger.LogError("Error from Blockchain.Wallets");
+                                        throw new Exception("Error from Blockchain.Wallets");
+                                    }
+
+                                    if (users.Users != null && users.Users.Any())
+                                    {
+                                        var firstUser = users.Users.First();
+
+                                        var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
+                                        await _depositPublisher.PublishAsync(new FireblocksDepositSignal
+                                        {
+                                            Amount = transaction.Amount,
+                                            AssetSymbol = assetSymbol,
+                                            Network = network,
+                                            BrokerId = firstUser.BrokerId,
+                                            ClientId = firstUser.ClientId,
+                                            WalletId = firstUser.WalletId,
+                                            Comment = "",
+                                            EventDate = createdAt.DateTime,
+                                            FeeAmount = transaction.NetworkFee,
+                                            FeeAssetSymbol = transaction.FeeCurrency,
+                                            Status = FireblocksDepositStatus.Completed,
+
+                                            TransactionId = transaction.TxHash,
                                         });
-
-                                        if (users.Error != null)
-                                        {
-                                            _logger.LogError("Error from Blockchain.Wallets");
-                                            throw new Exception("Error from Blockchain.Wallets");
-                                        }
-
-                                        if (users.Users != null && users.Users.Any())
-                                        {
-                                            var firstUser = users.Users.First();
-
-                                            var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
-                                            await _depositPublisher.PublishAsync(new FireblocksDepositSignal
-                                            {
-                                                Amount = transaction.Amount,
-                                                AssetSymbol = assetSymbol,
-                                                Network = network,
-                                                BrokerId = firstUser.BrokerId,
-                                                ClientId = firstUser.ClientId,
-                                                WalletId = firstUser.WalletId,
-                                                Comment = "",
-                                                EventDate = createdAt.DateTime,
-                                                FeeAmount = transaction.NetworkFee,
-                                                FeeAssetSymbol = transaction.FeeCurrency,
-                                                Status = FireblocksDepositStatus.Completed,
-
-                                                TransactionId = transaction.TxHash,
-                                            });
-                                        }
-                                        else
-                                        {
-                                            _logger.LogWarning("there is no user for this address! {@context}", webhook);
-                                        }
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("there is no user for this address! {@context}", webhook);
                                     }
                                 }
 
