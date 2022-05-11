@@ -67,6 +67,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             var mapping = _assetMappingNoSql.Get().FirstOrDefault(x => x.AssetMapping.FireblocksAssetId == transaction.AssetId);
 
+                            var feeMapping = _assetMappingNoSql.Get().FirstOrDefault(x => x.AssetMapping.FireblocksAssetId == transaction.FeeCurrency);
+
                             if (mapping == null)
                             {
                                 _logger.LogError("Message from Fireblocks: {@context} ASSET IS NOT CONFIGURED!", body);
@@ -74,13 +76,14 @@ namespace Service.Fireblocks.Webhook.Subscribers
                             }
 
                             var assetSymbol = mapping.AssetMapping.AssetId;
+                            var feeSymbol = feeMapping?.AssetMapping?.AssetId ?? transaction.FeeCurrency;
                             var network = mapping.AssetMapping.NetworkId;
                             var vaultAccountsList = new List<string>();
 
 
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
-                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Completed);
+                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Completed, feeSymbol);
 
                                 if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
@@ -176,7 +179,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                             {
                                 _logger.LogWarning("Message from Fireblocks Queue: {@context} transaction status indicates failure", body);
                                 await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
-                                    Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Failed);
+                                    Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Failed, feeSymbol);
                             }
 
                             break;
@@ -198,7 +201,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             }
         }
 
-        private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol, string network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus status)
+        private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol, string network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus status, string feeSymbol)
         {
             if (!string.IsNullOrEmpty(transaction.ExternalTxId) ||
                                                 !string.IsNullOrEmpty(transaction.Note))
@@ -212,7 +215,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                     Comment = $"{transaction.Status}",
                     EventDate = createdAt.DateTime,
                     FeeAmount = transaction.NetworkFee,
-                    FeeAssetSymbol = transaction.FeeCurrency,
+                    FeeAssetSymbol = feeSymbol,
                     Status = status,
                     TransactionId = transaction.TxHash,
                     ExternalId = transaction.ExternalTxId,
