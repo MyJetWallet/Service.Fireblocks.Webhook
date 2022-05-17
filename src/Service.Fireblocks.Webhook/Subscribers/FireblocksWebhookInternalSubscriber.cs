@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Service.Fireblocks.Webhook.Domain.Models.Withdrawals;
 
 namespace Service.Fireblocks.Webhook.Subscribers
 {
@@ -83,7 +84,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
-                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Completed, feeSymbol);
+                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, 
+                                    FireblocksWithdrawalStatus.Completed, feeSymbol, FireblocksWithdrawalSubStatus.None);
 
                                 if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
@@ -177,9 +179,15 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                      transaction.Status == TransactionResponseStatus.REJECTED ||
                                      transaction.Status == TransactionResponseStatus.TIMEOUT)
                             {
-                                _logger.LogWarning("Message from Fireblocks Queue: {@context} transaction status indicates failure", body);
+                                _logger.LogWarning(
+                                    "Message from Fireblocks Queue: {@context} transaction status indicates failure",
+                                    body);
+                                var subStatus = transaction.Status == TransactionResponseStatus.BLOCKED
+                                                && transaction.SubStatus == TransactionSubStatus.BLOCKED_BY_POLICY
+                                    ? FireblocksWithdrawalSubStatus.PolicyLimitReached
+                                    : FireblocksWithdrawalSubStatus.None;
                                 await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
-                                    Domain.Models.Withdrawals.FireblocksWithdrawalStatus.Failed, feeSymbol);
+                                    FireblocksWithdrawalStatus.Failed, feeSymbol, subStatus);
                             }
 
                             break;
@@ -201,7 +209,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
             }
         }
 
-        private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol, string network, Domain.Models.Withdrawals.FireblocksWithdrawalStatus status, string feeSymbol)
+        private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol, 
+            string network, FireblocksWithdrawalStatus status, string feeSymbol, FireblocksWithdrawalSubStatus subStatus)
         {
             if (!string.IsNullOrEmpty(transaction.ExternalTxId) ||
                                                 !string.IsNullOrEmpty(transaction.Note))
@@ -222,6 +231,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                     InternalNote = transaction.Note,
                     DestinationAddress = transaction.DestinationAddress,
                     DestinationTag = transaction.DestinationTag,
+                    SubStatus = subStatus,
                 });
             }
         }

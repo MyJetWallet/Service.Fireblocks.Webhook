@@ -45,5 +45,8 @@ namespace Service.Fireblocks.Webhook.ServiceBus.Deposits
 
         [DataMember(Order = 13)]
         public string DestinationTag { get; set; }
+        
+        [DataMember(Order = 14)]
+        public FireblocksWithdrawalSubStatus SubStatus { get; set; }
     }
 }
