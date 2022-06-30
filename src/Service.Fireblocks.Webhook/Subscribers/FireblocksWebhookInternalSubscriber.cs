@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Service.Fireblocks.Webhook.Domain.Models.Withdrawals;
+using System.Text.RegularExpressions;
 
 namespace Service.Fireblocks.Webhook.Subscribers
 {
@@ -30,6 +31,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
         private readonly IServiceBusPublisher<FireblocksDepositSignal> _depositPublisher;
         private readonly IServiceBusPublisher<FireblocksWithdrawalSignal> _withdrawalPublisher;
         private readonly IServiceBusPublisher<VaultAccountBalanceCacheUpdate> _vaultAccountBalanceCacheUpdatePublisher;
+        private readonly Regex _dealerRegex = new Regex(@"dealer[ ]*se[t]{1,2}lement", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
 
         public FireblocksWebhookInternalSubscriber(
             ISubscriber<WebhookQueueItem> subscriber,
@@ -87,10 +90,16 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                 await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, 
                                     FireblocksWithdrawalStatus.Completed, feeSymbol, FireblocksWithdrawalSubStatus.None);
 
+                                bool isDelearManualTransfer = false;
                                 if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
                                     vaultAccountsList.Add(transaction.Source.Id);
+                                    isDelearManualTransfer = !string.IsNullOrEmpty(transaction.Note) &&
+                                        _dealerRegex.IsMatch(transaction.Note);
                                 }
+
+                                if (isDelearManualTransfer)
+                                    _logger.LogInformation("TRANSACTION FROM DEALER! {@context}", webhook);
 
                                 bool isGasTransaction = !string.IsNullOrEmpty(transaction.Source.Name) &&
                                     transaction.Source.Name.ToLowerInvariant().Contains("gas station");
@@ -105,7 +114,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     vaultAccountsList.Add(transaction.Destination.Id);
                                 }
 
-                                if (isDeposit && !isGasTransaction)
+                                if (isDeposit && !isGasTransaction && !isDelearManualTransfer)
                                 {
                                     var destTag = transaction.DestinationTag ?? string.Empty;
 
