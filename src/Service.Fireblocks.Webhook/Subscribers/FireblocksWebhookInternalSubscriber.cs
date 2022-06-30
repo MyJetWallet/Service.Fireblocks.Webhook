@@ -90,13 +90,13 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                 await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network, 
                                     FireblocksWithdrawalStatus.Completed, feeSymbol, FireblocksWithdrawalSubStatus.None);
 
-                                bool isDelearManualTransfer = false;
                                 if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
                                     vaultAccountsList.Add(transaction.Source.Id);
-                                    isDelearManualTransfer = !string.IsNullOrEmpty(transaction.Note) &&
-                                        _dealerRegex.IsMatch(transaction.Note);
                                 }
+
+                                bool isDelearManualTransfer = !string.IsNullOrEmpty(transaction.Note) &&
+                                        _dealerRegex.IsMatch(transaction.Note);
 
                                 if (isDelearManualTransfer)
                                     _logger.LogInformation("TRANSACTION FROM DEALER! {@context}", webhook);
