@@ -36,6 +36,8 @@ namespace Service.Fireblocks.Webhook.Modules
 
             builder.RegisterMyServiceBusPublisher<FireblocksDepositSignal>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksDepositSignalTopic, false);
 
+            builder.RegisterMyServiceBusPublisher<FireblocksDepositWrongAssetSignal>(serviceBusClient, FireblocksDepositWrongAssetSignal.ServiceBusMessageTopic, false);
+
             builder.RegisterMyServiceBusPublisher<FireblocksWithdrawalSignal>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWithdrawalSignalTopic, false);
 
             builder.RegisterMyServiceBusPublisher<WebhookQueueItem>(serviceBusClient, Service.Fireblocks.Webhook.ServiceBus.Topics.FireblocksWebhookInternalTopic, false);
