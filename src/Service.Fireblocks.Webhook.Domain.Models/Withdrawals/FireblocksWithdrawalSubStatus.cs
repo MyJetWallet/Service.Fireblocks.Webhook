@@ -4,5 +4,6 @@
     {
         None = 0,
         PolicyLimitReached = 1,
+        SigningFailed = 2,
     }
 }

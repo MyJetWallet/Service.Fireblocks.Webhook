@@ -33,6 +33,14 @@ namespace Service.Fireblocks.Webhook.Subscribers
         private readonly IServiceBusPublisher<FireblocksWithdrawalSignal> _withdrawalPublisher;
         private readonly IServiceBusPublisher<VaultAccountBalanceCacheUpdate> _vaultAccountBalanceCacheUpdatePublisher;
         private readonly Regex _dealerRegex = new Regex(@"dealer[ ]*se[t]{1,2}lement", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
+        private readonly static HashSet<TransactionResponseStatus> _failResponseStatuses = new HashSet<TransactionResponseStatus>
+        {
+            TransactionResponseStatus.CANCELLED,
+            TransactionResponseStatus.FAILED,
+            TransactionResponseStatus.BLOCKED,
+            TransactionResponseStatus.REJECTED,
+            TransactionResponseStatus.TIMEOUT,
+        };
 
 
         public FireblocksWebhookInternalSubscriber(
@@ -162,7 +170,8 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                                                 TransactionId = transaction.TxHash,
                                             });
-                                        } else
+                                        }
+                                        else
                                         {
                                             await _wrongAssetPublisher.PublishAsync(new FireblocksDepositWrongAssetSignal
                                             {
@@ -172,7 +181,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                                 BrokerId = firstUser.BrokerId,
                                                 ClientId = firstUser.ClientId,
                                                 WalletId = firstUser.WalletId,
-                                                Comment = 
+                                                Comment =
                                                 $"It was expected to receive {firstUser.AssetSymbol} {firstUser.AssetNetwork}",
                                                 EventDate = createdAt.DateTime,
                                                 FeeAmount = transaction.NetworkFee,
@@ -208,19 +217,22 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                 }
 
                             }
-                            else if (transaction.Status == TransactionResponseStatus.CANCELLED ||
-                                     transaction.Status == TransactionResponseStatus.FAILED ||
-                                     transaction.Status == TransactionResponseStatus.BLOCKED ||
-                                     transaction.Status == TransactionResponseStatus.REJECTED ||
-                                     transaction.Status == TransactionResponseStatus.TIMEOUT)
+                            else if (_failResponseStatuses.Contains(transaction.Status))
                             {
                                 _logger.LogWarning(
                                     "Message from Fireblocks Queue: {@context} transaction status indicates failure",
                                     body);
+
                                 var subStatus = transaction.Status == TransactionResponseStatus.BLOCKED
                                                 && transaction.SubStatus == TransactionSubStatus.BLOCKED_BY_POLICY
                                     ? FireblocksWithdrawalSubStatus.PolicyLimitReached
                                     : FireblocksWithdrawalSubStatus.None;
+
+                                if ((transaction.Status == TransactionResponseStatus.FAILED
+                                    && transaction.SubStatus == TransactionSubStatus.SIGNING_ERROR) ||
+                                    transaction.Status == TransactionResponseStatus.SIGNING_ERROR)
+                                    subStatus = FireblocksWithdrawalSubStatus.SigningFailed;
+
                                 await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
                                     FireblocksWithdrawalStatus.Failed, feeSymbol, subStatus);
                             }
@@ -248,7 +260,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
             string network, FireblocksWithdrawalStatus status, string feeSymbol, FireblocksWithdrawalSubStatus subStatus)
         {
             if (!string.IsNullOrEmpty(transaction.ExternalTxId) ||
-                                                !string.IsNullOrEmpty(transaction.Note))
+                !string.IsNullOrEmpty(transaction.Note))
             {
                 var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
                 await _withdrawalPublisher.PublishAsync(new FireblocksWithdrawalSignal()

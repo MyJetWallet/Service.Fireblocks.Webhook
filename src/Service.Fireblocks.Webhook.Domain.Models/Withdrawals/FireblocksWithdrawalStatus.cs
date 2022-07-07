@@ -9,6 +9,6 @@ namespace Service.Fireblocks.Webhook.Domain.Models.Withdrawals
     public enum FireblocksWithdrawalStatus
     {
         Completed,
-        Failed
+        Failed,
     }
 }
