@@ -98,11 +98,10 @@ namespace Service.Fireblocks.Webhook.Subscribers
 
                             if (transaction.Status == TransactionResponseStatus.COMPLETED)
                             {
-                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
-                                    FireblocksWithdrawalStatus.Completed, feeSymbol, FireblocksWithdrawalSubStatus.None);
-
                                 if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
                                 {
+                                    await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
+                                    FireblocksWithdrawalStatus.Completed, feeSymbol, FireblocksWithdrawalSubStatus.None);
                                     vaultAccountsList.Add(transaction.Source.Id);
                                 }
 
@@ -223,18 +222,22 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     "Message from Fireblocks Queue: {@context} transaction status indicates failure",
                                     body);
 
-                                var subStatus = transaction.Status == TransactionResponseStatus.BLOCKED
+                                if (transaction.Source.Type == TransferPeerPathType.VAULT_ACCOUNT)
+                                {
+
+                                    var subStatus = transaction.Status == TransactionResponseStatus.BLOCKED
                                                 && transaction.SubStatus == TransactionSubStatus.BLOCKED_BY_POLICY
                                     ? FireblocksWithdrawalSubStatus.PolicyLimitReached
                                     : FireblocksWithdrawalSubStatus.None;
 
-                                if ((transaction.Status == TransactionResponseStatus.FAILED
-                                    && transaction.SubStatus == TransactionSubStatus.SIGNING_ERROR) ||
-                                    transaction.Status == TransactionResponseStatus.SIGNING_ERROR)
-                                    subStatus = FireblocksWithdrawalSubStatus.SigningFailed;
+                                    if ((transaction.Status == TransactionResponseStatus.FAILED
+                                        && transaction.SubStatus == TransactionSubStatus.SIGNING_ERROR) ||
+                                        transaction.Status == TransactionResponseStatus.SIGNING_ERROR)
+                                        subStatus = FireblocksWithdrawalSubStatus.SigningFailed;
 
-                                await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
-                                    FireblocksWithdrawalStatus.Failed, feeSymbol, subStatus);
+                                    await SendWithdrawalSignalIfPresent(transaction, assetSymbol, network,
+                                        FireblocksWithdrawalStatus.Failed, feeSymbol, subStatus);
+                                }
                             }
 
                             break;
@@ -259,28 +262,24 @@ namespace Service.Fireblocks.Webhook.Subscribers
         private async Task SendWithdrawalSignalIfPresent(TransactionResponse transaction, string assetSymbol,
             string network, FireblocksWithdrawalStatus status, string feeSymbol, FireblocksWithdrawalSubStatus subStatus)
         {
-            if (!string.IsNullOrEmpty(transaction.ExternalTxId) ||
-                !string.IsNullOrEmpty(transaction.Note))
+            var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
+            await _withdrawalPublisher.PublishAsync(new FireblocksWithdrawalSignal()
             {
-                var createdAt = DateTimeOffset.FromUnixTimeMilliseconds((long)transaction.CreatedAt);
-                await _withdrawalPublisher.PublishAsync(new FireblocksWithdrawalSignal()
-                {
-                    Amount = transaction.Amount,
-                    AssetSymbol = assetSymbol,
-                    Network = network,
-                    Comment = $"{transaction.Status}",
-                    EventDate = createdAt.DateTime,
-                    FeeAmount = transaction.NetworkFee,
-                    FeeAssetSymbol = feeSymbol,
-                    Status = status,
-                    TransactionId = transaction.TxHash,
-                    ExternalId = transaction.ExternalTxId,
-                    InternalNote = transaction.Note,
-                    DestinationAddress = transaction.DestinationAddress,
-                    DestinationTag = transaction.DestinationTag,
-                    SubStatus = subStatus,
-                });
-            }
+                Amount = transaction.Amount,
+                AssetSymbol = assetSymbol,
+                Network = network,
+                Comment = $"{transaction.Status}",
+                EventDate = createdAt.DateTime,
+                FeeAmount = transaction.NetworkFee,
+                FeeAssetSymbol = feeSymbol,
+                Status = status,
+                TransactionId = transaction.TxHash,
+                ExternalId = transaction.ExternalTxId,
+                InternalNote = transaction.Note,
+                DestinationAddress = transaction.DestinationAddress,
+                DestinationTag = transaction.DestinationTag,
+                SubStatus = subStatus,
+            });
         }
     }
 }
