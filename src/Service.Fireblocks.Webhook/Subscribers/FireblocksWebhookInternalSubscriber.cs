@@ -198,7 +198,7 @@ namespace Service.Fireblocks.Webhook.Subscribers
                                     }
                                 }
 
-                                if (transaction.Destinations.Any())
+                                if (transaction.Destinations != null && transaction.Destinations.Any())
                                 {
                                     _logger.LogWarning("Many connections! {@context}", webhook);
                                     //TODO:
